@@ -46,7 +46,7 @@ curl http://localhost:8080/tasks
 ### 3. grpc requests
 
  ./todo-client get
-./todo-cli addTask --name "Test Task" --note "This is a test note"
+ ./todo-client add --title "Buy planks" --description "nails no falls"
 
 ### 4. env vars needed
 DB_USER=user
