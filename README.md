@@ -43,7 +43,14 @@ curl -X POST http://localhost:8080/tasks -d '{"title": "Buy groceries", "descrip
 
 curl http://localhost:8080/tasks
 
-#### grpc requests
+### 3. grpc requests
 
  ./todo-client get
 ./todo-cli addTask --name "Test Task" --note "This is a test note"
+
+### 4. env vars needed
+DB_USER=user
+DB_PASSWORD=password
+DB_HOST=mysql
+DB_PORT=3306
+DB_NAME=todo_db
