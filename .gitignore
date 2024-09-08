@@ -5,6 +5,9 @@
 *.so
 *.dylib
 
+# Environment files
+*.env
+
 # Test binary, coverage reports, and logs
 *.out
 *.test
@@ -20,3 +23,4 @@ go.sum
 # IDE settings (optional)
 .idea/
 .vscode/
+
