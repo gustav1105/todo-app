@@ -13,16 +13,39 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
       - ./sql/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - todo-network
 
   grpc-server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile # Dockerfile for gRPC server is in the root
     ports:
       - "50051:50051"
     depends_on:
       - mysql
     env_file:
       - .env
+    networks:
+      - todo-network
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./cmd/gateway/Dockerfile # Dockerfile for API Gateway is in cmd/gateway/
+    ports:
+      - "8080:8080"
+    depends_on:
+      - grpc-server
+    env_file:
+      - .env
+    networks:
+      - todo-network
 
 volumes:
   mysql-data:
+
+networks:
+  todo-network:
+    driver: bridge
 
