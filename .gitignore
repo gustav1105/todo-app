@@ -1,0 +1,22 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, coverage reports, and logs
+*.out
+*.test
+*.log
+coverage.out
+
+# Vendor directory (when using vendoring)
+/vendor/
+
+# Go module files
+go.sum
+
+# IDE settings (optional)
+.idea/
+.vscode/
