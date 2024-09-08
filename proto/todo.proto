@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package todo;
+
+option go_package = "/proto";
+
+message Task {
+    int32 id = 1;
+    string title = 2;
+    string description = 3;
+    bool completed = 4;
+}
+
+message TaskRequest {
+    string title = 1;
+    string description = 2;
+}
+
+message TaskResponse {
+    repeated Task tasks = 1;
+}
+
+message CompleteTaskRequest {
+    int32 id = 1;
+}
+
+message Empty {}
+
+service TodoService {
+    rpc AddTask (TaskRequest) returns (Empty);
+    rpc GetTasks (Empty) returns (TaskResponse);
+    rpc CompleteTask (CompleteTaskRequest) returns (Empty);
+}
+
