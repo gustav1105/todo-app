@@ -30,13 +30,20 @@ To run this project locally using Docker, follow these steps:
 
 ### 1. Clone the repository
 
-```bash
 git clone https://github.com/your-username/todo-app.git
 cd todo-app
 
+### 2. build and up
+
 docker-compose up --build
+
+### 3. http request
 
 curl -X POST http://localhost:8080/tasks -d '{"title": "Buy groceries", "description": "Buy groceries for the week"}' -H "Content-Type: application/json"
 
 curl http://localhost:8080/tasks
 
+#### grpc requests
+
+ ./todo-client get
+./todo-cli addTask --name "Test Task" --note "This is a test note"
