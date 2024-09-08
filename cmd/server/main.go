@@ -10,6 +10,7 @@ import (
     "time"
 
     "go.uber.org/fx"
+    "go.uber.org/zap"
     _ "github.com/go-sql-driver/mysql" // MySQL driver
     "google.golang.org/grpc"
     "todo-app/internal/handlers"
@@ -66,38 +67,50 @@ func NewDB(lc fx.Lifecycle) (*sql.DB, error) {
     return db, nil
 }
 
-// runServer starts the gRPC server
-func runServer(lc fx.Lifecycle, handler proto.TodoServiceServer) {
-    lc.Append(fx.Hook{
-        OnStart: func(ctx context.Context) error {
-            lis, err := net.Listen("tcp", ":50051")
-            if err != nil {
-                return err
-            }
+func runServer(lifecycle fx.Lifecycle, logger *zap.Logger, todoService proto.TodoServiceServer) {
+    lifecycle.Append(
+        fx.Hook{
+            OnStart: func(ctx context.Context) error {
+                logger.Info("Starting gRPC server...")
 
-            grpcServer := grpc.NewServer()
-            proto.RegisterTodoServiceServer(grpcServer, handler)
+                lis, err := net.Listen("tcp", ":50051")
+                if err != nil {
+                    logger.Fatal("Failed to listen", zap.Error(err))
+                }
+                grpcServer := grpc.NewServer()
+                proto.RegisterTodoServiceServer(grpcServer, todoService)
 
-            log.Println("Starting gRPC server on port 50051...")
-            go grpcServer.Serve(lis) // Serve in a goroutine
-            return nil
+                go func() {
+                    if err := grpcServer.Serve(lis); err != nil {
+                        logger.Fatal("Failed to serve gRPC", zap.Error(err))
+                    }
+                }()
+                return nil
+            },
+            OnStop: func(ctx context.Context) error {
+                logger.Info("Shutting down gRPC server...")
+                return nil
+            },
         },
-        OnStop: func(ctx context.Context) error {
-            log.Println("Stopping gRPC server...")
-            return nil
-        },
-    })
+    )
 }
 
 func main() {
     app := fx.New(
         fx.Provide(
-            NewDB,                            // Provide *sql.DB
-            handlers.NewTodoServiceHandler,   // Provide the gRPC service handler
+            NewDB,
+            handlers.NewTodoServiceHandler,
+            NewLogger,
         ),
-        fx.Invoke(runServer),                 // Invoke the gRPC server
+        fx.Invoke(runServer),
     )
 
     app.Run()
 }
 
+// NewLogger sets up the zap logger
+func NewLogger() *zap.Logger {
+    logger, _ := zap.NewProduction() // You can use zap.NewDevelopment() for dev mode
+    defer logger.Sync()               // Flush logs
+    return logger
+}

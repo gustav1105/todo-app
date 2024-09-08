@@ -2,74 +2,84 @@ package main
 
 import (
     "context"
-    "log"
     "os"
+
     "github.com/spf13/cobra"
+    "go.uber.org/zap"
     "google.golang.org/grpc"
     "todo-app/proto"
 )
 
 func main() {
+    logger, _ := zap.NewProduction()
+    defer logger.Sync()
+
     rootCmd := &cobra.Command{Use: "todo-client"}
-    
+
     addCmd := &cobra.Command{
         Use:   "add",
         Short: "Add a new task",
         Run: func(cmd *cobra.Command, args []string) {
             title, _ := cmd.Flags().GetString("title")
             description, _ := cmd.Flags().GetString("description")
-            addTask(title, description)
+            addTask(logger, title, description)
         },
     }
-    
+
     getCmd := &cobra.Command{
         Use:   "get",
         Short: "Get all tasks",
         Run: func(cmd *cobra.Command, args []string) {
-            getTasks()
+            getTasks(logger)
         },
     }
-    
+
     addCmd.Flags().String("title", "", "Title of the task")
     addCmd.Flags().String("description", "", "Description of the task")
-    
+
     rootCmd.AddCommand(addCmd, getCmd)
-    
+
     if err := rootCmd.Execute(); err != nil {
-        log.Fatalf("Error starting CLI: %v", err)
+        logger.Fatal("Error executing CLI command", zap.Error(err))
         os.Exit(1)
     }
 }
 
-func addTask(title, description string) {
+func addTask(logger *zap.Logger, title, description string) {
+    logger.Info("Attempting to add a new task", zap.String("title", title))
+
     conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
     if err != nil {
-        log.Fatalf("Failed to connect: %v", err)
+        logger.Fatal("Failed to connect", zap.Error(err))
     }
     defer conn.Close()
 
     client := proto.NewTodoServiceClient(conn)
     _, err = client.AddTask(context.Background(), &proto.TaskRequest{Title: title, Description: description})
     if err != nil {
-        log.Fatalf("Error adding task: %v", err)
+        logger.Fatal("Error adding task", zap.Error(err))
     }
-    log.Println("Task added successfully")
+
+    logger.Info("Task added successfully", zap.String("title", title))
 }
 
-func getTasks() {
+func getTasks(logger *zap.Logger) {
+    logger.Info("Fetching tasks")
+
     conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
     if err != nil {
-        log.Fatalf("Failed to connect: %v", err)
+        logger.Fatal("Failed to connect", zap.Error(err))
     }
     defer conn.Close()
 
     client := proto.NewTodoServiceClient(conn)
     response, err := client.GetTasks(context.Background(), &proto.Empty{})
     if err != nil {
-        log.Fatalf("Error getting tasks: %v", err)
+        logger.Fatal("Error getting tasks", zap.Error(err))
     }
-    
+
     for _, task := range response.Tasks {
-        log.Printf("Task: %v, Completed: %v", task.Title, task.Completed)
+        logger.Info("Task found", zap.String("title", task.Title), zap.Bool("completed", task.Completed))
     }
 }
+
