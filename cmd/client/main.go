@@ -5,7 +5,7 @@ import (
 
     "github.com/spf13/cobra"
     "go.uber.org/zap"
-    "todo-app/internal/tasks"
+    "todo-app/internal/commands"
 )
 
 func main() {
@@ -14,8 +14,12 @@ func main() {
 
     rootCmd := &cobra.Command{Use: "todo-client"}
 
-    // Register commands from the tasks package
-    rootCmd.AddCommand(tasks.NewAddCommand(logger), tasks.NewGetCommand(logger))
+    // Register commands from the tasks and commands package
+    rootCmd.AddCommand(
+        commands.NewAddCommand(logger),
+        commands.NewGetCommand(logger),
+        commands.NewServeCommand(logger), // Add serve command here
+    )
 
     if err := rootCmd.Execute(); err != nil {
         logger.Fatal("Error executing CLI command", zap.Error(err))
