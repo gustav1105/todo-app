@@ -54,3 +54,6 @@ DB_PASSWORD=password
 DB_HOST=mysql
 DB_PORT=3306
 DB_NAME=todo_db
+
+### 5 spin up grpc server without env
+./todo-client serve --db-user="your_db_user" --db-password="your_db_password" --db-host="your_db_host" --db-port="your_db_port" --db-name="your_db_name"
